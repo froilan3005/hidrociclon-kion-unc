@@ -448,8 +448,8 @@ def fig_entrada_tangencial(r):
         ax.annotate('',xy=(ent_xr-3,fy),xytext=(ent_xl+Sasc*0.35,fy),
             arrowprops=dict(arrowstyle='->',color=C_IN,lw=1.2),zorder=5)
     r_u=ep*1.5
-    ax.add_patch(Arc((ent_xr,ent_yt+r_u),r_u*2,r_u*2,0,270,360,color='#E74C3C',lw=0.8,ls='--',zorder=4))
-    ax.add_patch(Arc((ent_xr,ent_yb-r_u),r_u*2,r_u*2,0,0,90,  color='#E74C3C',lw=0.8,ls='--',zorder=4))
+    ax.add_patch(Arc((ent_xr,ent_yt+r_u),r_u*2,r_u*2,angle=0,theta1=270,theta2=360,color='#E74C3C',lw=0.8,linestyle='--'))
+    ax.add_patch(Arc((ent_xr,ent_yb-r_u),r_u*2,r_u*2,angle=0,theta1=0,  theta2=90, color='#E74C3C',lw=0.8,linestyle='--'))
     _cota_h(ax,ent_yt+ep+5,ent_xl,ent_xr,'Sa',C_IN,above=True)
     _cota_v(ax,ent_xl-8,ent_yb,ent_yt,'Sb',C_IN)
     _cota_v(ax,ent_xl-16,ent_yb-ep,ent_yb,'e','#8B0000')
