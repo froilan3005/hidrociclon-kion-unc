@@ -380,12 +380,15 @@ def fig_longitudinal(r):
     ax.plot([-D/2, -Do/2], [y0, y0], color=CW, lw=1.5, zorder=5)
     ax.plot([ Do/2,  D/2], [y0, y0], color=CW, lw=1.5, zorder=5)
 
-    # ── Entrada tangencial circular ──
+    # ── Entrada tangencial circular (vista lateral del tubo tangencial) ──
+    # En vista longitudinal (corte A-A): el tubo entra horizontalmente
+    # pero su eje es tangente al cuerpo (no radial)
+    # El tubo está desplazado D/2 + Ent_od/2 del eje central
     ent_y   = y0 + Lcy * 0.35
     ent_R   = Ent_od / 2        # radio exterior de la conexión
     ent_id  = r['Ent_id'] / 2   # radio interior
-    ent_len = ent_R * 4.0       # longitud del tubo visible
-    ent_x0  = -D/2 - ent_len
+    ent_len = ent_R * 4.5       # longitud del tubo visible
+    ent_x0  = -D/2 - ent_len    # extremo exterior del tubo
     # Pared superior e inferior del tubo de entrada
     ax.plot([ent_x0, -D/2], [ent_y+ent_R,   ent_y+ent_R],   color=CI, lw=1.0, zorder=4)
     ax.plot([ent_x0, -D/2], [ent_y-ent_R,   ent_y-ent_R],   color=CI, lw=1.0, zorder=4)
@@ -404,7 +407,7 @@ def fig_longitudinal(r):
     # Flecha de flujo entrada
     ax.annotate('', xy=(-D/2-ent_R, ent_y), xytext=(ent_x0+2, ent_y),
         arrowprops=dict(arrowstyle='->', color=CI, lw=1.5), zorder=7)
-    ax.text(ent_x0-2, ent_y, f'Entrada\nDN {r["Ent_dn"]}',
+    ax.text(ent_x0-2, ent_y, f'Entrada tangencial\nDN {r["Ent_dn"]}\n(eje tangente al cuerpo)',
             ha='right', va='center', fontsize=6, color=CI)
 
     # ── Férula cilindro–cono ──
@@ -510,23 +513,52 @@ def fig_superior(r):
     ax.plot([cx-D/2-6,cx+D/2+6],[cy,cy], color='#BBBBBB', lw=0.4, ls=(0,(8,3,2,3)), zorder=1)
     ax.plot([cx,cx],[cy-D/2-6,cy+D/2+6], color='#BBBBBB', lw=0.4, ls=(0,(8,3,2,3)), zorder=1)
 
-    # Entrada tangencial circular
-    ent_x0 = cx - D/2 - Ent_od*3.5
-    ent_xf  = cx - D/2
-    # Pared del tubo
-    ax.fill_between([ent_x0, ent_xf],
-        cy-Ent_od/2, cy+Ent_od/2, facecolor='#90A4AE', alpha=0.6, zorder=3)
-    ax.fill_between([ent_x0, ent_xf],
-        cy-Ent_id/2, cy+Ent_id/2, facecolor=CF, alpha=0.8, zorder=4)
-    ax.plot([ent_x0,ent_xf],[cy+Ent_od/2,cy+Ent_od/2], color=CI, lw=1.0, zorder=5)
-    ax.plot([ent_x0,ent_xf],[cy-Ent_od/2,cy-Ent_od/2], color=CI, lw=1.0, zorder=5)
-    ax.plot([ent_x0,ent_xf],[cy+Ent_id/2,cy+Ent_id/2], color=CI, lw=0.4, ls='--', zorder=5)
-    ax.plot([ent_x0,ent_xf],[cy-Ent_id/2,cy-Ent_id/2], color=CI, lw=0.4, ls='--', zorder=5)
-    # Férula entrada
-    ax.plot([ent_x0,ent_x0],[cy-Ent_od/2-4,cy+Ent_od/2+4], color=CI, lw=2.5, zorder=5)
-    ax.annotate('', xy=(ent_xf-4,cy), xytext=(ent_x0+2,cy),
-        arrowprops=dict(arrowstyle='->', color=CI, lw=1.5), zorder=6)
-    ax.text(ent_x0-2, cy, f'Entrada\nDN {r["Ent_dn"]}',
+    # ── Entrada tangencial CORRECTA en vista planta ──
+    # El eje del tubo es tangente al exterior del cuerpo cilíndrico.
+    # La pared interior del tubo coincide con la pared exterior del cuerpo.
+    # Eje del tubo: X = -(D/2 + Ent_od/2), dirección vertical (Y).
+    # El fluido entra tangencialmente, generando el vórtice sin turbulencia de choque.
+    import numpy as _np_s
+    eje_x   = cx - D/2 - Ent_od/2      # eje del tubo (tangente a la pared exterior)
+    y_fin   = cy                         # punto de conexión con el cuerpo
+    y_ini   = y_fin + Ent_od * 4.5      # extremo libre del tubo (con férula)
+
+    # Cuerpo del tubo (zona exterior e interior)
+    ax.fill_between([eje_x - Ent_od/2, eje_x + Ent_od/2],
+        [y_fin]*2, [y_ini]*2, facecolor='#90A4AE', alpha=0.7, zorder=4)
+    ax.fill_between([eje_x - Ent_id/2, eje_x + Ent_id/2],
+        [y_fin]*2, [y_ini]*2, facecolor=CF, alpha=0.85, zorder=5)
+    # Contornos exteriores del tubo
+    for xw in [eje_x - Ent_od/2, eje_x + Ent_od/2]:
+        ax.plot([xw, xw], [y_fin, y_ini], color=CI, lw=1.2, zorder=6)
+    # Paredes interiores (línea de trazos)
+    for xw in [eje_x - Ent_id/2, eje_x + Ent_id/2]:
+        ax.plot([xw, xw], [y_fin, y_ini], color=CI, lw=0.4, ls='--', zorder=6)
+    # Cierre inferior del tubo (línea que une con el cuerpo del ciclón)
+    ax.plot([eje_x - Ent_od/2, cx - D/2], [y_fin, y_fin], color=CI, lw=0.8, zorder=6)
+    # Arco del cilindro exterior con la abertura tangencial
+    theta_gap = _np_s.degrees(_np_s.arctan2(Ent_od/2, D/2)) * 1.1
+    t_end   = _np_s.radians(90 + theta_gap)
+    t_start = _np_s.radians(90 - theta_gap)
+    t_arc   = _np_s.linspace(t_end, t_start + 2*_np_s.pi, 200)
+    ax.plot(cx + D/2*_np_s.cos(t_arc), cy + D/2*_np_s.sin(t_arc),
+            color=CW, lw=1.5, zorder=7)
+    # Redibuja interior
+    ax.add_patch(plt.Circle((cx, cy), D/2-ep, facecolor=CF,
+        edgecolor=CW, lw=0.5, zorder=3))
+    ax.add_patch(plt.Circle((cx,cy), Do/2, facecolor=CVF, edgecolor=CI,
+        lw=0.8, ls='--', zorder=4, alpha=0.75))
+    ax.add_patch(plt.Circle((cx,cy), Do/2-ep, facecolor='white', edgecolor=CI,
+        lw=0.4, ls='--', zorder=5, alpha=0.5))
+    # Férula Tri-Clamp en el extremo libre del tubo
+    ax.plot([eje_x - Ent_od/2 - 3, eje_x + Ent_od/2 + 3],
+            [y_ini, y_ini], color=CI, lw=3.0, zorder=6)
+    # Flecha de flujo (el fluido entra fluyendo hacia abajo)
+    ax.annotate('', xy=(eje_x, y_fin + Ent_od),
+        xytext=(eje_x, y_ini - 2),
+        arrowprops=dict(arrowstyle='->', color=CI, lw=1.8), zorder=8)
+    ax.text(eje_x - Ent_od/2 - 3, (y_fin + y_ini)/2,
+            f'Entrada tangencial\nDN {r["Ent_dn"]}',
             ha='right', va='center', fontsize=6, color=CI)
 
     # Línea de corte A-A
@@ -547,8 +579,8 @@ def fig_superior(r):
 
     ax.set_aspect('equal')
     ax.axis('off')
-    ax.set_xlim(-D/2-Ent_od*4-22, D/2+108)
-    ax.set_ylim(-D/2-28, D/2+28)
+    ax.set_xlim(-D/2-Ent_od*2-20, D/2+108)
+    ax.set_ylim(-D/2-28, D/2+Ent_od*5+15)
     fig.tight_layout(pad=0.4)
     return fig
 
